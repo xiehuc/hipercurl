@@ -9,8 +9,8 @@ add_definitions('-Wall')
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
-list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/curl)
 find_package(CURL REQUIRED)
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 find_package(EV   REQUIRED)
 
 include_directories(curl/src/ ./ ${CURL_INCLUDE_DIRS} ${EV_INCLUDE_DIRS})
