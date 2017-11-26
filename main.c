@@ -35,10 +35,11 @@ static void fifo_cb(EV_P_ struct ev_io *w, int revents)
   ssize_t len = 0;
 
   while ((len = getline(&g->linebuffer, &g->capacity, stdin)) > 0) {
-    if (strncmp(g->linebuffer, "http", min(4, len)) != 0) {
+    char* linebuffer = g->linebuffer;
+    if (strncmp(linebuffer, "http", min(4, len)) != 0) {
+      direct_output(linebuffer, len, g);
       continue;
     }
-    char* linebuffer = g->linebuffer;
     char* sep = strchr(linebuffer, '\t');
     if (sep) {
       *sep = '\0';
@@ -46,6 +47,9 @@ static void fifo_cb(EV_P_ struct ev_io *w, int revents)
     } else {
       new_conn(linebuffer, NULL, g);
     }
+  }
+  if (feof(stdin)) {
+    ev_io_stop(g->loop, w);
   }
 }
 

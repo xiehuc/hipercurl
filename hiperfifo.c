@@ -143,7 +143,9 @@ static void mcode_or_die(const char *where, CURLMcode code)
 }
 
 static void free_conn(ConnInfo* info) {
-  free(info->url);
+  if (info->url) {
+    free(info->url);
+  }
   free(info);
 }
 
@@ -329,6 +331,20 @@ static int prog_cb(void *p, double dltotal, double dlnow, double ult,
   return 0;
 }
 
+void direct_output(char* line, size_t size, GlobalInfo* g) {
+  ConnInfo* conn = malloc(sizeof(*conn));
+  TAILQ_INIT(&conn->body);
+  conn->global = g;
+  struct string_list* list = malloc(sizeof(*list));
+  list->data = strdup(line);
+  list->size = size;
+  if (line[size-1] == '\n') {
+    list->size --;
+  }
+  TAILQ_INSERT_TAIL(&conn->body, list, entries);
+  TAILQ_INSERT_TAIL(&g->infohead, conn, entries);
+  //queue_output(g);
+}
 
 /* Create a new easy handle, and add it to the global curl_multi */
 void new_conn(char *url, char* post, GlobalInfo *g)

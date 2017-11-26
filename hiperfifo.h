@@ -47,5 +47,6 @@ typedef struct _ConnInfo
 
 void new_conn(char *url, char* post, GlobalInfo *g);
 void init_global(GlobalInfo* g);
+void direct_output(char* line, size_t size, GlobalInfo* g);
 
 #endif /* !HIPERFIFO_H */
