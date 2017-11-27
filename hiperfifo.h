@@ -10,7 +10,7 @@
 
 #include <curl/curl.h>
 #include <ev.h>
-#include <sys/queue.h>
+#include "queue.h"
 
 /* Global information, common to all connections */
 typedef struct _GlobalInfo
