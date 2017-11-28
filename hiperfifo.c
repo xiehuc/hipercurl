@@ -155,7 +155,7 @@ static int queue_output(GlobalInfo* g)
   do {
     info = TAILQ_FIRST(&g->infohead);
     if (!info || info->easy) {
-      return 0;
+      break;
     }
     TAILQ_REMOVE(&g->infohead, info, entries);
     struct string_list* piece, *tpiece;
@@ -168,6 +168,10 @@ static int queue_output(GlobalInfo* g)
     }
     free_conn(info);
   } while(1);
+  if (g->still_running <= g->max_running) {
+    g->start_io(g);
+  }
+  return 0;
 }
 
 /* Check for completed transfers, and remove their easy handles */
@@ -343,7 +347,6 @@ void direct_output(char* line, size_t size, GlobalInfo* g) {
   }
   TAILQ_INSERT_TAIL(&conn->body, list, entries);
   TAILQ_INSERT_TAIL(&g->infohead, conn, entries);
-  //queue_output(g);
 }
 
 /* Create a new easy handle, and add it to the global curl_multi */
@@ -406,6 +409,7 @@ void init_global(GlobalInfo* g)
   curl_multi_setopt(g->multi, CURLMOPT_SOCKETDATA, g);
   curl_multi_setopt(g->multi, CURLMOPT_TIMERFUNCTION, multi_timer_cb);
   curl_multi_setopt(g->multi, CURLMOPT_TIMERDATA, g);
+  g->max_running = 50;
 }
 
 //int main(int argc, char **argv)

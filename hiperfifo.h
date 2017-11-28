@@ -20,10 +20,12 @@ typedef struct _GlobalInfo
   struct ev_timer timer_event;
   CURLM *multi;
   int still_running;
+  int max_running; // const set by params
   FILE *input;
   char* linebuffer;
   size_t capacity;
   struct curl_slist* header;
+  int (*start_io)(struct _GlobalInfo *g);
   TAILQ_HEAD(, _ConnInfo) infohead;
 } GlobalInfo;
 

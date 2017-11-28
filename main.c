@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <getopt.h>
 #include "hiperfifo.h"
 
 ssize_t min(ssize_t a, ssize_t b) {
@@ -47,19 +47,50 @@ static void fifo_cb(EV_P_ struct ev_io *w, int revents)
     } else {
       new_conn(linebuffer, NULL, g);
     }
+    if (g->still_running > g->max_running) {
+      ev_io_stop(g->loop, w);
+      break;
+    }
   }
   if (feof(stdin)) {
     ev_io_stop(g->loop, w);
   }
 }
 
-static int init_fd(GlobalInfo *g)
+int init_fd(GlobalInfo *g)
 {
-
+  if (ev_is_active(&g->fifo_event)) {
+    return 0;
+  }
   ev_io_init(&g->fifo_event, fifo_cb, 0, EV_READ);
   ev_io_start(g->loop, &g->fifo_event);
   g->fifo_event.data = g;
   return 0;
+}
+
+static void usage(const char* prog)
+{
+  printf("usage: %s [-h] [-n<num>]\n", prog);
+  printf("\t-h: print this help\n");
+  printf("\t-n: set prarllel running num\n");
+  exit(0);
+}
+
+static void init_args(int argc, char* argv[], GlobalInfo* g) 
+{
+  int ch;
+  while ((ch = getopt(argc, argv, "hn:")) != -1) {
+    switch (ch) {
+      case 'n':
+        g->max_running = atoi(optarg);
+        break;
+      case 'h':
+      case '?':
+      default:
+        usage(argv[0]);
+        break;
+    }
+  }
 }
 
 int main(int argc, char *argv[])
@@ -67,7 +98,9 @@ int main(int argc, char *argv[])
   GlobalInfo g;
 
   init_global(&g);
+  g.start_io = init_fd;
   init_fd(&g);
+  init_args(argc, argv, &g);
 
   ev_loop(g.loop, 0);
   
