@@ -70,7 +70,7 @@ int init_fd(GlobalInfo *g)
 
 static void usage(const char* prog)
 {
-  printf("usage: %s [-h0] [-n<num>]\n", prog);
+  printf("usage: %s [-hv0] [-H header] [-n<num>]\n", prog);
   printf("\t-h: print this help\n");
   printf("\t-n: set prarllel running num\n");
   printf("\t-0: like find -print0, end every document with '\\0'\n");
@@ -80,13 +80,20 @@ static void usage(const char* prog)
 static void init_args(int argc, char* argv[], GlobalInfo* g) 
 {
   int ch;
-  while ((ch = getopt(argc, argv, "hn:0")) != -1) {
+  while ((ch = getopt(argc, argv, "n:0Hhv")) != -1) {
     switch (ch) {
       case 'n':
         g->max_running = atoi(optarg);
         break;
       case '0':
         delimiter = '\0';
+        break;
+      case 'H':
+        g->header = curl_slist_append(g->header, strdup(argv[optind]));
+        break;
+      case 'v':
+        g->easy_opt.list[g->easy_opt.len++] = CURLOPT_VERBOSE;
+        g->easy_opt.list[g->easy_opt.len++] = 1L;
         break;
       case 'h':
       case '?':
@@ -102,9 +109,9 @@ int main(int argc, char *argv[])
   GlobalInfo g;
 
   init_global(&g);
+  init_args(argc, argv, &g);
   g.start_io = init_fd;
   init_fd(&g);
-  init_args(argc, argv, &g);
 
   ev_loop(g.loop, 0);
   

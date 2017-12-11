@@ -381,10 +381,14 @@ void new_conn(char *url, char* post, GlobalInfo *g)
   curl_easy_setopt(conn->easy, CURLOPT_PROGRESSDATA, conn);
   curl_easy_setopt(conn->easy, CURLOPT_LOW_SPEED_TIME, 3L);
   curl_easy_setopt(conn->easy, CURLOPT_LOW_SPEED_LIMIT, 10L);
+  curl_easy_setopt(conn->easy, CURLOPT_SHARE, g->share);
+  curl_easy_setopt(conn->easy, CURLOPT_HTTPHEADER, g->header);
   if (post) {
     curl_easy_setopt(conn->easy, CURLOPT_POST, 1L);
     curl_easy_setopt(conn->easy, CURLOPT_COPYPOSTFIELDS, post);
-    curl_easy_setopt(conn->easy, CURLOPT_HTTPHEADER, g->header);
+  }
+  for (int i = 0; i< g->easy_opt.len; i+=2) {
+    curl_easy_setopt(conn->easy, g->easy_opt.list[i], g->easy_opt.list[i+1]);
   }
 
   DPRINT(
@@ -402,9 +406,13 @@ void init_global(GlobalInfo* g)
   memset(g, 0, sizeof(GlobalInfo));
   g->loop = ev_default_loop(0);
   TAILQ_INIT(&g->infohead);
-  curl_slist_append(g->header, "Expect: ");
-  curl_slist_append(g->header, "Content-Type: application/json");
   g->multi = curl_multi_init();
+  g->share = curl_share_init();
+  curl_share_setopt(g->share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+
+  g->easy_opt.capacity = 64;
+  g->easy_opt.list = calloc(g->easy_opt.capacity, sizeof(long));
+  g->easy_opt.len = 0;
 
   ev_timer_init(&g->timer_event, timer_cb, 0., 0.);
   g->timer_event.data = g;
@@ -414,32 +422,3 @@ void init_global(GlobalInfo* g)
   curl_multi_setopt(g->multi, CURLMOPT_TIMERDATA, g);
   g->max_running = 50;
 }
-
-//int main(int argc, char **argv)
-/* { */
-/*   GlobalInfo g; */
-/*   CURLMcode rc; */
-/*   (void)argc; */
-/*   (void)argv; */
-
-/*   memset(&g, 0, sizeof(GlobalInfo)); */
-/*   g.loop = ev_default_loop(0); */
-
-/*   init_fifo(&g); */
-/*   g.multi = curl_multi_init(); */
-
-/*   ev_timer_init(&g.timer_event, timer_cb, 0., 0.); */
-/*   g.timer_event.data = &g; */
-/*   g.fifo_event.data = &g; */
-/*   curl_multi_setopt(g.multi, CURLMOPT_SOCKETFUNCTION, sock_cb); */
-/*   curl_multi_setopt(g.multi, CURLMOPT_SOCKETDATA, &g); */
-/*   curl_multi_setopt(g.multi, CURLMOPT_TIMERFUNCTION, multi_timer_cb); */
-/*   curl_multi_setopt(g.multi, CURLMOPT_TIMERDATA, &g); */
-
-/*   /1* we don't call any curl_multi_socket*() function yet as we have no handles */
-/*      added! *1/ */
-
-/*   ev_loop(g.loop, 0); */
-/*   curl_multi_cleanup(g.multi); */
-/*   return 0; */
-/* } */

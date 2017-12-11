@@ -12,6 +12,7 @@
 #include <ev.h>
 #include "queue.h"
 
+struct _ConnInfo;
 /* Global information, common to all connections */
 typedef struct _GlobalInfo
 {
@@ -19,6 +20,7 @@ typedef struct _GlobalInfo
   struct ev_io fifo_event;
   struct ev_timer timer_event;
   CURLM *multi;
+  CURLSH* share;
   int still_running;
   int max_running; // const set by params
   FILE *input;
@@ -26,6 +28,11 @@ typedef struct _GlobalInfo
   size_t capacity;
   struct curl_slist* header;
   int (*start_io)(struct _GlobalInfo *g);
+  struct {
+    long* list;
+    int len;
+    int capacity;
+  } easy_opt;
   TAILQ_HEAD(, _ConnInfo) infohead;
 } GlobalInfo;
 
