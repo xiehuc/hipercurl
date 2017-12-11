@@ -47,6 +47,8 @@ typedef struct _ConnInfo
   TAILQ_ENTRY(_ConnInfo) entries;
 } ConnInfo;
 
+extern char delimiter;
+
 void new_conn(char *url, char* post, GlobalInfo *g);
 void init_global(GlobalInfo* g);
 void direct_output(char* line, size_t size, GlobalInfo* g);

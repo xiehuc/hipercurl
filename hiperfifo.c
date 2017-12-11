@@ -87,6 +87,7 @@ typedef struct _SockInfo
   GlobalInfo *global;
 } SockInfo;
 
+char delimiter = '\n';
 static void timer_cb(EV_P_ struct ev_timer *w, int revents);
 
 /* Update the event timer after curl_multi library calls */
@@ -161,7 +162,7 @@ static int queue_output(GlobalInfo* g)
     struct string_list* piece, *tpiece;
     TAILQ_FOREACH_SAFE(piece, &info->body, entries, tpiece) {
       fwrite(piece->data, piece->size, 1, stdout);
-      fwrite("\n", 1, 1, stdout);
+      fwrite(&delimiter, 1, 1, stdout);
       TAILQ_REMOVE(&info->body, piece, entries);
       free(piece->data);
       free(piece);

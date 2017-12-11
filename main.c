@@ -70,19 +70,23 @@ int init_fd(GlobalInfo *g)
 
 static void usage(const char* prog)
 {
-  printf("usage: %s [-h] [-n<num>]\n", prog);
+  printf("usage: %s [-h0] [-n<num>]\n", prog);
   printf("\t-h: print this help\n");
   printf("\t-n: set prarllel running num\n");
+  printf("\t-0: like find -print0, end every document with '\\0'\n");
   exit(0);
 }
 
 static void init_args(int argc, char* argv[], GlobalInfo* g) 
 {
   int ch;
-  while ((ch = getopt(argc, argv, "hn:")) != -1) {
+  while ((ch = getopt(argc, argv, "hn:0")) != -1) {
     switch (ch) {
       case 'n':
         g->max_running = atoi(optarg);
+        break;
+      case '0':
+        delimiter = '\0';
         break;
       case 'h':
       case '?':
