@@ -367,7 +367,9 @@ void new_conn(char *url, char* post, GlobalInfo *g)
     exit(2);
   }
   conn->global = g;
-  conn->url = strdup(url);
+  size_t len = strlen(url);
+  if (url[len-1] == '\n') --len;
+  conn->url = strndup(url, len);
   curl_easy_setopt(conn->easy, CURLOPT_URL, conn->url);
   curl_easy_setopt(conn->easy, CURLOPT_WRITEFUNCTION, write_cb);
   curl_easy_setopt(conn->easy, CURLOPT_WRITEDATA, conn);
